@@ -57,7 +57,7 @@ namespace GamerHub.DATA.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Admins");
+                    b.ToTable("Admin");
                 });
 
             modelBuilder.Entity("GamerHub.CORE.Models.Friendship", b =>
@@ -79,6 +79,28 @@ namespace GamerHub.DATA.Migrations
                     b.HasIndex("RequestedToId");
 
                     b.ToTable("Friendship");
+                });
+
+            modelBuilder.Entity("GamerHub.CORE.Models.Game", b =>
+                {
+                    b.Property<int?>("GameId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int?>("GameId"), 1L, 1);
+
+                    b.Property<int>("GameGenre")
+                        .HasMaxLength(50)
+                        .HasColumnType("int");
+
+                    b.Property<string>("GameName")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("GameId");
+
+                    b.ToTable("Game");
                 });
 
             modelBuilder.Entity("GamerHub.CORE.Models.Post", b =>
@@ -111,7 +133,7 @@ namespace GamerHub.DATA.Migrations
 
                     b.HasKey("PostId");
 
-                    b.ToTable("Posts");
+                    b.ToTable("Post");
                 });
 
             modelBuilder.Entity("GamerHub.CORE.Models.User", b =>
@@ -149,7 +171,7 @@ namespace GamerHub.DATA.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.ToTable("User");
                 });
 
             modelBuilder.Entity("GamerHub.CORE.Models.Friendship", b =>

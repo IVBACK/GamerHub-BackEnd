@@ -2,6 +2,6 @@
 {
     public class Search
     {
-        public string GameName { get; set; }
+        public string SearchString { get; set; }
     }
 }

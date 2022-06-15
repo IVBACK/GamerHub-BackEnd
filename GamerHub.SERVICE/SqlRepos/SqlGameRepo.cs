@@ -5,20 +5,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GamerHub.SERVICE.SqlRepos
 {
-    public class SqlPostRepo : IPostRepo
+    public class SqlGameRepo : IGameRepo
     {
         private readonly GamerHubDBContext db_Context;
 
-        public SqlPostRepo(GamerHubDBContext db)
+        public SqlGameRepo(GamerHubDBContext db)
         {
             this.db_Context = db;
         }
 
-        public bool CreatePost(Post post)
+
+        public bool CreateGame(Game game)
         {
             try
             {
-                db_Context.Post.Add(post);
+                db_Context.Game.Add(game);
                 db_Context.SaveChanges();
                 return true;
             }
@@ -28,12 +29,12 @@ namespace GamerHub.SERVICE.SqlRepos
             }
         }
 
-        public bool DeletePost(int id)
+        public bool DeleteGame(int id)
         {
             try
             {
-                var post = db_Context.Post.Find(id);
-                db_Context.Post.Remove(post);
+                var game = db_Context.Game.Find(id);
+                db_Context.Game.Remove(game);
                 db_Context.SaveChanges();
                 return true;
             }
@@ -44,16 +45,16 @@ namespace GamerHub.SERVICE.SqlRepos
             }
         }
 
-        public IEnumerable<Post> GetAllPosts()
+        public IEnumerable<Game> GetAllGames()
         {
-            return db_Context.Post.ToList();
+            return db_Context.Game.ToList();
         }
 
-        public IEnumerable<Post> SearchPost(string searchString)
+        public IEnumerable<Game> SearchGame(string searchString)
         {
             try
             {
-                return db_Context.Post.Where(p => p.GameName.Contains(searchString));
+                return db_Context.Game.Where(p => p.GameName.Contains(searchString));
             }
             catch (Exception)
             {
@@ -62,18 +63,18 @@ namespace GamerHub.SERVICE.SqlRepos
             }
         }
 
-        public bool UpdatePost(Post post)
+        public bool UpdateGame(Game game)
         {
             try
             {
-                db_Context.Entry(post).State = EntityState.Modified;
+                db_Context.Entry(game).State = EntityState.Modified;
                 db_Context.SaveChanges();
                 return true;
             }
             catch (Exception)
             {
                 return false;
-                throw new ArgumentNullException(nameof(post));
+                throw new ArgumentNullException(nameof(game));
             }
         }
     }

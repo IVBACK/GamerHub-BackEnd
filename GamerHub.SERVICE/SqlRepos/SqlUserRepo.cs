@@ -5,11 +5,10 @@ using GamerHub.SERVICE.IRepos;
 using GamerHub.SERVICE.Security;
 using GamerHub.SERVICE.Validations;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 
 namespace GamerHub.SERVICE.SqlRepos
 {
-    public class SqlUserRepo : IStandartUserRepo, IAdminRepo
+    public class SqlUserRepo : IUserRepo, IAdminRepo
     {
         private readonly GamerHubDBContext db_Context;
 
@@ -26,7 +25,7 @@ namespace GamerHub.SERVICE.SqlRepos
 
         public bool CheckUserWithEmail(string email)
         {
-            if (db_Context.Users.FirstOrDefault(p => p.Email == email) != null)
+            if (db_Context.User.FirstOrDefault(p => p.Email == email) != null)
                 return false;
 
             return true;
@@ -45,7 +44,7 @@ namespace GamerHub.SERVICE.SqlRepos
                     Gender = user.Gender,
                     BirthDate = user.BirthDate,
                 };
-                db_Context.Users.Add(encryptedUser);
+                db_Context.User.Add(encryptedUser);
                 db_Context.SaveChanges();
                 return true;
             }
@@ -56,8 +55,9 @@ namespace GamerHub.SERVICE.SqlRepos
         {
             try
             {
-                var user = db_Context.Users.Find(id);
-                db_Context.Users.Remove(user);
+                var user = GetUserById(id);
+                UpdateUser(user);
+                db_Context.User.Remove(user);
                 db_Context.SaveChanges();
                 return true;
             }
@@ -70,14 +70,29 @@ namespace GamerHub.SERVICE.SqlRepos
 
         public IEnumerable<User> GetAllUsers()
         {
-            return db_Context.Users.ToList();
+            return db_Context.User.ToList();
         }
 
-        public IEnumerable<User> SearchUser(string search)
+        public IEnumerable<Friend> SearchUser(string search)
         {
             try
             {
-                return db_Context.Users.Where(p => p.Name.Contains(search));
+                List<Friend> friendSearchlist = new List<Friend>();
+                var x = db_Context.User.Where(p => p.Name.Contains(search));
+                foreach (var user in x)
+                {
+                    Friend friend = new Friend()
+                    {
+                        Id = user.Id,
+                        Name = user.Name,
+                        Email = user.Email,
+                        Gender = user.Gender,
+                        BirthDate = user.BirthDate
+                    };
+                    friendSearchlist.Add(friend);
+                }
+
+                return friendSearchlist;
             }
             catch (Exception)
             {
@@ -89,7 +104,7 @@ namespace GamerHub.SERVICE.SqlRepos
 
         public UserClient UserLogin(User userLoginRequest)
         {
-            User encryptedUser = db_Context.Users.FirstOrDefault(p => p.Email == userLoginRequest.Email);
+            User encryptedUser = db_Context.User.FirstOrDefault(p => p.Email == userLoginRequest.Email);
             if (encryptedUser != null)
             {
                 if (Encryption.Decrypt(encryptedUser.Password) == userLoginRequest.Password)
@@ -110,11 +125,17 @@ namespace GamerHub.SERVICE.SqlRepos
 
         public User GetUserById(int id)
         {
-            var user = db_Context.Users
+            var user = db_Context.User
                 .Include(user => user.ReceivedFriendships)
                 .Include(user => user.SentFriendships)
-                .FirstOrDefault(p => p.Id == id);
+                   .FirstOrDefault(p => p.Id == id);
 
+            return user;
+        }
+
+        public User GetOnlyUserById(int id)
+        {
+            var user = db_Context.User.FirstOrDefault(p => p.Id == id);
             return user;
         }
 
@@ -137,7 +158,7 @@ namespace GamerHub.SERVICE.SqlRepos
         {
             if (userValidation.IsNameValid(admin.Name) && userValidation.IsEmailValid(admin.Email))
             {
-                db_Context.Admins.Add(admin);
+                db_Context.Admin.Add(admin);
                 db_Context.SaveChanges();
                 return true;
             }
@@ -146,7 +167,7 @@ namespace GamerHub.SERVICE.SqlRepos
 
         public AdminClient AdminLogin(Admin adminLoginRequest)
         {
-            Admin encryptedAdmin = db_Context.Admins.FirstOrDefault(p => p.Email == adminLoginRequest.Email);
+            Admin encryptedAdmin = db_Context.Admin.FirstOrDefault(p => p.Email == adminLoginRequest.Email);
             if (encryptedAdmin != null)
             {
                 if (/*Encryption.Decrypt(encryptedAdmin.Password)*/ encryptedAdmin.Password == adminLoginRequest.Password)
@@ -184,8 +205,8 @@ namespace GamerHub.SERVICE.SqlRepos
         {
             try
             {
-                var admin = db_Context.Admins.Find(id);
-                db_Context.Admins.Remove(admin);
+                var admin = db_Context.Admin.Find(id);
+                db_Context.Admin.Remove(admin);
                 db_Context.SaveChanges();
                 return true;
             }
@@ -198,12 +219,12 @@ namespace GamerHub.SERVICE.SqlRepos
 
         public IEnumerable<Admin> GetAllAdmins()
         {
-            return db_Context.Admins.ToList();
+            return db_Context.Admin.ToList();
         }
 
         public bool CheckAdminWithEmail(string email)
         {
-            if (db_Context.Admins.FirstOrDefault(p => p.Email == email) != null)
+            if (db_Context.Admin.FirstOrDefault(p => p.Email == email) != null)
                 return false;
 
             return true;

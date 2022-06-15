@@ -62,10 +62,10 @@ namespace GamerHub_BackEnd.Controllers
 
         [Authorize]
         [HttpPost("Search")]
-        public IActionResult Search([FromBody] object content)
+        public IActionResult Search([FromBody] Search search)
         {
-            var obj = JsonConvert.DeserializeObject<string>(content.ToString());
-            IEnumerable<User> usersFiltered = sqlUserRepo.SearchUser(obj);
+            IEnumerable<Friend> usersFiltered = sqlUserRepo.SearchUser(search.SearchString);
+
             if (usersFiltered != null)
                 return Ok(usersFiltered);
 
@@ -86,10 +86,11 @@ namespace GamerHub_BackEnd.Controllers
 
         [Authorize]
         [HttpPut("UpdateUser")]
-        public IActionResult Update([FromBody] User user)
+        public IActionResult Update([FromBody] object content)
         {
-            if (sqlUserRepo.UpdateUser(user))
-                return Ok(user);
+            var obj = JsonConvert.DeserializeObject<User>(content.ToString());
+            if (sqlUserRepo.UpdateUser(obj))
+                return Ok();
 
             return BadRequest();
         }

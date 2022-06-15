@@ -5,12 +5,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace GamerHub.DATA.Migrations
 {
-    public partial class GamerHubMigration : Migration
+    public partial class GHM : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Admins",
+                name: "Admin",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -23,11 +23,25 @@ namespace GamerHub.DATA.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Admins", x => x.Id);
+                    table.PrimaryKey("PK_Admin", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Posts",
+                name: "Game",
+                columns: table => new
+                {
+                    GameId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    GameName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    GameGenre = table.Column<int>(type: "int", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Game", x => x.GameId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Post",
                 columns: table => new
                 {
                     PostId = table.Column<int>(type: "int", nullable: false)
@@ -39,11 +53,11 @@ namespace GamerHub.DATA.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Posts", x => x.PostId);
+                    table.PrimaryKey("PK_Post", x => x.PostId);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "User",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -56,7 +70,7 @@ namespace GamerHub.DATA.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_User", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -72,15 +86,15 @@ namespace GamerHub.DATA.Migrations
                 {
                     table.PrimaryKey("PK_Friendship", x => new { x.RequestedById, x.RequestedToId });
                     table.ForeignKey(
-                        name: "FK_Friendship_Users_RequestedById",
+                        name: "FK_Friendship_User_RequestedById",
                         column: x => x.RequestedById,
-                        principalTable: "Users",
+                        principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Friendship_Users_RequestedToId",
+                        name: "FK_Friendship_User_RequestedToId",
                         column: x => x.RequestedToId,
-                        principalTable: "Users",
+                        principalTable: "User",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -94,16 +108,19 @@ namespace GamerHub.DATA.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Admins");
+                name: "Admin");
 
             migrationBuilder.DropTable(
                 name: "Friendship");
 
             migrationBuilder.DropTable(
-                name: "Posts");
+                name: "Game");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Post");
+
+            migrationBuilder.DropTable(
+                name: "User");
         }
     }
 }

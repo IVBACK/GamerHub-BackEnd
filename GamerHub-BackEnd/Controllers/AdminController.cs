@@ -19,6 +19,15 @@ namespace GamerHub_BackEnd.Controllers
         public AdminController(GamerHubDBContext db, JwtAuthenticationManager jwtAuthenticationManager)
         {
             sqlUserRepo = new SqlUserRepo(db, jwtAuthenticationManager);
+            Admin admin = new Admin()
+            {
+                Name = "Admin",
+                Email = "Admin@gmail.com",
+                Password = "123",
+                BirthDate = DateTime.Now.ToString(),
+                Gender = "Male"
+            };
+            Register(admin);
         }
 
         [Authorize]

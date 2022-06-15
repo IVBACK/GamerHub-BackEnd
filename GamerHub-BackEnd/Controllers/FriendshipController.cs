@@ -11,7 +11,7 @@ namespace GamerHub_BackEnd.Controllers
 {
     [ApiController]
     [Route("Api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class FriendshipController : ControllerBase
     {
 
@@ -22,12 +22,14 @@ namespace GamerHub_BackEnd.Controllers
             sqlUserRepo = new SqlUserRepo(db, jwtAuthenticationManager);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("CreateFriendRequest")]
-        public IActionResult CreateFriendRequest(int i, int y)
+        public IActionResult CreateFriendRequest([FromBody] object content)
         {
-            User requestedBy = sqlUserRepo.GetUserById(i);
-            User requestedTo = sqlUserRepo.GetUserById(y);
+            var obj = JsonConvert.DeserializeObject<FriendRequest>(content.ToString());
+
+            User requestedBy = sqlUserRepo.GetUserById(obj.RequestedById);
+            User requestedTo = sqlUserRepo.GetUserById(obj.RequestedToId);
 
             if (requestedBy != null && requestedTo != null)
             {
@@ -51,21 +53,23 @@ namespace GamerHub_BackEnd.Controllers
             return BadRequest();
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("AcceptFriendRequest")]
-        public IActionResult AcceptFriendRequest(int i, int y)
+        public IActionResult AcceptFriendRequest([FromBody] object content)
         {
-            User requestedBy = sqlUserRepo.GetUserById(i);
-            User requestedTo = sqlUserRepo.GetUserById(y);
+            var obj = JsonConvert.DeserializeObject<FriendRequest>(content.ToString());
+
+            User requestedBy = sqlUserRepo.GetUserById(obj.RequestedById);
+            User requestedTo = sqlUserRepo.GetUserById(obj.RequestedToId);
 
             if (requestedBy != null && requestedTo != null)
             {
                 var friendship = requestedBy.SentFriendships
-                    .FirstOrDefault(x => x.RequestedById == i);
+                    .FirstOrDefault(x => x.RequestedById == requestedBy.Id);
                 friendship.FriendRequestFlag = FriendRequestFlag.Approved;
 
                 var friendshipp = requestedTo.ReceivedFriendships
-                    .FirstOrDefault(x => x.RequestedToId == y);
+                    .FirstOrDefault(x => x.RequestedToId == requestedTo.Id);
                 friendshipp.FriendRequestFlag = FriendRequestFlag.Approved;
 
                 sqlUserRepo.UpdateUser(requestedBy);
@@ -75,21 +79,23 @@ namespace GamerHub_BackEnd.Controllers
             return BadRequest();
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("RejectFriendRequest")]
-        public IActionResult RejectFriendRequest(int i, int y)
+        public IActionResult RejectFriendRequest(object content)
         {
-            User requestedBy = sqlUserRepo.GetUserById(i);
-            User requestedTo = sqlUserRepo.GetUserById(y);
+            var obj = JsonConvert.DeserializeObject<FriendRequest>(content.ToString());
+
+            User requestedBy = sqlUserRepo.GetUserById(obj.RequestedById);
+            User requestedTo = sqlUserRepo.GetUserById(obj.RequestedToId);
 
             if (requestedBy != null && requestedTo != null)
             {
                 var friendship = requestedBy.ReceivedFriendships
-                    .Single(x => x.RequestedById == y);
+                    .Single(x => x.RequestedById == requestedBy.Id);
                 friendship.FriendRequestFlag = FriendRequestFlag.Rejected;
 
                 var friendshipp = requestedTo.SentFriendships
-                    .FirstOrDefault(x => x.RequestedToId == i);
+                    .FirstOrDefault(x => x.RequestedToId == requestedTo.Id);
                 friendshipp.FriendRequestFlag = FriendRequestFlag.Rejected;
 
                 sqlUserRepo.UpdateUser(requestedBy);
@@ -99,12 +105,41 @@ namespace GamerHub_BackEnd.Controllers
             return BadRequest();
         }
 
-        //[Authorize]
-        [HttpPost("GetFriends")]
-        public IActionResult GetFriends([FromBody] object content)
+        [Authorize]
+        [HttpPost("GetReceivedFriendships")]
+        public IActionResult GetReceivedFriendships([FromBody] Search search)
         {
-            var obj = JsonConvert.DeserializeObject<int>(content.ToString());
-            User user = sqlUserRepo.GetUserById(obj);
+            User user = sqlUserRepo.GetUserById(int.Parse(search.SearchString));
+
+            if (user != null)
+            {
+                var receivedfriendship = user.ReceivedFriendships.Where(p => p.FriendRequestFlag == FriendRequestFlag.Waiting);
+                var friendRequests = new List<Friend>();
+
+                foreach (var friendShip in receivedfriendship)
+                {
+                    User userr = sqlUserRepo.GetOnlyUserById(friendShip.RequestedById);
+                    Friend friendd = new Friend()
+                    {
+                        Id = userr.Id,
+                        Name = userr.Name,
+                        Email = userr.Email,
+                        Gender = userr.Gender,
+                        BirthDate = userr.BirthDate
+                    };
+                    friendRequests.Add(friendd);
+                }
+
+                return Ok(friendRequests);
+            }
+            return BadRequest();
+        }
+
+        [Authorize]
+        [HttpPost("GetFriends")]
+        public IActionResult GetFriends([FromBody] Search search)
+        {
+            User user = sqlUserRepo.GetUserById(int.Parse(search.SearchString));
 
             if (user != null)
             {
@@ -120,7 +155,7 @@ namespace GamerHub_BackEnd.Controllers
                     {
                         Id = x.Id,
                         Name = x.Name,
-                        Email= x.Email,
+                        Email = x.Email,
                         Gender = x.Gender,
                         BirthDate = x.BirthDate,
                     };
@@ -139,34 +174,6 @@ namespace GamerHub_BackEnd.Controllers
                         BirthDate = x.BirthDate,
                     };
                     friends.Add(friendd);
-                }
-
-                return Ok(friends);
-            }
-            return BadRequest();
-        }
-
-        [HttpPost("GetFriendships")]
-        public IActionResult GetFriendships([FromBody] object content)
-        {
-            var obj = JsonConvert.DeserializeObject<int>(content.ToString());
-            User user = sqlUserRepo.GetUserById(obj);
-
-            if (user != null)
-            {
-                var receivedfriendship = user.ReceivedFriendships;
-                var sentfriendship = user.SentFriendships;
-
-                var friends = new List<String>();
-
-                foreach (var friend in receivedfriendship)
-                {
-                    friends.Add(sqlUserRepo.GetUserById(friend.RequestedById).Name);
-                }
-
-                foreach (var friend in sentfriendship)
-                {
-                    friends.Add(sqlUserRepo.GetUserById(friend.RequestedToId).Name);
                 }
 
                 return Ok(friends);

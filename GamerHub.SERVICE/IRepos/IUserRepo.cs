@@ -3,12 +3,12 @@ using GamerHub.CORE.WrapperModels;
 
 namespace GamerHub.SERVICE.IRepos
 {
-    public interface IStandartUserRepo
+    public interface IUserRepo
     {
         bool CheckUserWithEmail(string mail);
         IEnumerable<User> GetAllUsers();
         User GetUserById(int id);
-        IEnumerable<User> SearchUser(string search);
+        IEnumerable<Friend> SearchUser(string search);
         bool CreateUser(User user);
         UserClient UserLogin(User userLoginRequest);
         bool UpdateUser(User user);

@@ -6,27 +6,28 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
+
 namespace GamerHub_BackEnd.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("Api/[controller]")]
     [Authorize]
-    public class PostController : ControllerBase
+    public class GameController : ControllerBase
     {
-        private readonly SqlPostRepo sqlPostRepo;
+        private readonly SqlGameRepo sqlGameRepo;
 
-        public PostController(GamerHubDBContext db)
+        public GameController(GamerHubDBContext db)
         {
-            sqlPostRepo = new SqlPostRepo(db);
+            sqlGameRepo = new SqlGameRepo(db);
         }
 
         [Authorize]
         [HttpGet]
         public IActionResult GetAll()
         {
-            IEnumerable<Post> posts = sqlPostRepo.GetAllPosts();
-            if (posts != null)
-                return Ok(posts);
+            IEnumerable<Game> games = sqlGameRepo.GetAllGames();
+            if (games != null)
+                return Ok(games);
 
             return BadRequest();
         }
@@ -37,7 +38,7 @@ namespace GamerHub_BackEnd.Controllers
         {
             if (!string.IsNullOrEmpty(search.SearchString))
             {
-                IEnumerable<Post> postsFiltered = sqlPostRepo.SearchPost(search.SearchString);
+                IEnumerable<Game> postsFiltered = sqlGameRepo.SearchGame(search.SearchString);
                 return Ok(postsFiltered);
             }
             else
@@ -45,32 +46,32 @@ namespace GamerHub_BackEnd.Controllers
         }
 
         [Authorize]
-        [HttpPost("Createpost")]
-        public IActionResult Create([FromBody] Post post)
+        [HttpPost("CreateGame")]
+        public IActionResult Create([FromBody] Game game)
         {
-            if (sqlPostRepo.CreatePost(post))
+            if (sqlGameRepo.CreateGame(game))
                 return Ok();
 
             return BadRequest();
         }
 
         [Authorize]
-        [HttpPut("UpdatePost")]
+        [HttpPut("UpdateGame")]
         public IActionResult Update([FromBody] object content)
         {
-            var obj = JsonConvert.DeserializeObject<Post>(content.ToString());
-            if (sqlPostRepo.UpdatePost(obj))
+            var obj = JsonConvert.DeserializeObject<Game>(content.ToString());
+            if (sqlGameRepo.UpdateGame(obj))
                 return Ok(obj);
 
             return BadRequest();
         }
 
         [Authorize]
-        [HttpPost("DeletePost")]
+        [HttpPost("DeleteGame")]
         public IActionResult Delete([FromBody] object content)
         {
             var obj = JsonConvert.DeserializeObject<int>(content.ToString());
-            if (sqlPostRepo.DeletePost(obj))
+            if (sqlGameRepo.DeleteGame(obj))
                 return Ok();
 
             return BadRequest();
